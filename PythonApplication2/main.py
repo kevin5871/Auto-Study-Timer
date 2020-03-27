@@ -12,31 +12,10 @@ import shutil
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import NoSuchElementException, NoSuchFrameException, NoSuchWindowException, UnexpectedAlertPresentException, WebDriverException
 from time import strftime, localtime, time
+import time
 import os
 from plyer import notification
-
-########## Init & functions ##########
-
-with open('allow.txt') as f:
-    allowlist = f.read().splitlines()
-
-def search():
-    #for x in allowlist :
-        #if(x in driver.current_url) :
-            #return False
-    #return True
-    try :
-        for x in allowlist :
-            if x in driver.current_url :
-                return False
-        return True
-    except :
-        driver.close()
-
-def time() :
-    s = strftime("%X") 
-    s = '[' + s + ']'
-    return s
+from threading import Thread
 
 ########## Selection ##########
 
@@ -96,31 +75,74 @@ elif(platform.architecture()[0] == '64bit') :
         print("ERROR")
         quit()
 
+########## Init & functions ##########
+accept = 0
+flag = 0
+
+with open('allow.txt') as f:
+    allowlist = f.read().splitlines()
+
+def search():
+    #for x in allowlist :
+        #if(x in driver.current_url) :
+            #return False
+    #return True
+    try :
+        for x in allowlist :
+            if x in driver.current_url :
+                return False
+        return True
+    except Exception:
+        driver.close()
+
+def time() :
+    s = strftime("%X") 
+    s = '[' + s + ']'
+    return s
+
+def refresh() :
+    global accept
+    for x in range(0,accept+1,1) :
+        driver.switch_to.window(driver.window_handles[x])
+        if(search()) :
+            log = driver.current_url
+            driver.close()
+            driver.switch_to.window(driver.window_handles[x-1])
+            print(str(time()) + " WARNING : 허용 탭에 없는 탭이 열렸습니다. 탭을 닫습니다.")
+            print("해당 탭의 URL : " + log)
+            accept -= 1
+            return
+    return 
+
 
 ########## Operate ##########
 
 driver.get('https://www.ebsi.co.kr/index.jsp')
-accept = 0
 while True :
     try:
         if(search()) :
             log = driver.current_url
-            print(str(time()) + " WARNING : EBSi 홈페이지에서 벗어났습니다. EBSi 홈페이지로 리다이렉트됩니다.")
+            print(str(time()) + " WARNING : 허용 홈페이지에서 벗어났습니다. 허용 홈페이지의 첫번쨰 페이지(" + allowlist[0] +  ")로 리다이렉트됩니다.")
             print("해당 탭의 URL : " + log)
-            driver.get('https://www.ebsi.co.kr/index.jsp')
+            driver.get("https://" + allowlist[0])
+        if(flag == 1000) :
+            refresh()
+            flag = 0
+        else :
+            flag += 1
         window_before = driver.window_handles[accept]
         window_after = driver.window_handles[accept+1]
         driver.switch_to.window(window_after)
-        driver.implicitly_wait(2)
         if(search()) :
             log = driver.current_url
             driver.close()
             driver.switch_to.window(window_before)
-            print(str(time()) + " WARNING : EBSi홈페이지에서 벗어났습니다. EBSi 홈페이지로 리다이렉트됩니다.")
+            print(str(time()) + " WARNING : 허용 탭에 없는 탭이 열렸습니다. 탭을 닫습니다.")
             print("해당 탭의 URL : " + log)
         else :
             print(str(time()) + " INFO : 허용 탭이 열렸습니다. 현재 활성화 탭 : " + str(accept+1))
             accept += 1
+
     except IndexError :
         continue
     except NoSuchWindowException :
@@ -130,11 +152,12 @@ while True :
             print(str(time()) + " WARNING : 모든 탭이 닫혔습니다. 프로그램이 종료됩니다.")
             os.system("pause")
             quit()
+        #print(str(time()) + " WARNING : 모든 팝업창은 금지입니다.")
         window_before = driver.window_handles[accept]
         driver.switch_to.window(window_before)
         continue
     except UnexpectedAlertPresentException as e :
-        print(str(time()) + " WARINIG : 자바스크립트 알림입니다.")
+        print(str(time()) + " INFO : 자바스크립트 알림입니다.")
         notification.notify(title='Alert in browser',message=str(e))
     except Exception as e:
         print(print(str(time()) + " WARNING : 알 수 없는 오류입니다."))
