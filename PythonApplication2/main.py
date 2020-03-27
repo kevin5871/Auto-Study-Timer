@@ -10,8 +10,35 @@ from selenium import webdriver
 import platform
 import shutil
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.common.exceptions import NoSuchElementException, NoSuchFrameException, NoSuchWindowException
-import time
+from selenium.common.exceptions import NoSuchElementException, NoSuchFrameException, NoSuchWindowException, UnexpectedAlertPresentException, WebDriverException
+from time import strftime, localtime, time
+import os
+from plyer import notification
+
+########## Init & functions ##########
+
+with open('allow.txt') as f:
+    allowlist = f.read().splitlines()
+
+def search():
+    #for x in allowlist :
+        #if(x in driver.current_url) :
+            #return False
+    #return True
+    try :
+        for x in allowlist :
+            if x in driver.current_url :
+                return False
+        return True
+    except :
+        driver.close()
+
+def time() :
+    s = strftime("%X") 
+    s = '[' + s + ']'
+    return s
+
+########## Selection ##########
 
 print("자동화 학습 타이머 v 1.0\n\n")
 print("브라우저 선택\n")
@@ -22,6 +49,10 @@ print("※ 주의 : 브라우저가 미리 깔려있어야합니다!\n")
 print("※ 인터넷 익스플로러는 권장하지 않음 / 두 브라우저가 없을 때 사용하세요.\n")
 print("※ 인터넷 익스플로러는 '''레지스트리'''를 건드립니다.\n\n3번을 입력하여 인터넷 익스플로러를 실행하면 레지스트리를 통한 시스템 변조에 동의한 것으로 간주합니다.\n")
 choice = int(input())
+os.system("cls")
+
+########## OS Check Part ##########
+
 print("OS 확인 중...")
 print(platform.architecture()[0])
 if(platform.architecture()[0] == '32bit') :
@@ -65,36 +96,48 @@ elif(platform.architecture()[0] == '64bit') :
         print("ERROR")
         quit()
 
+
+########## Operate ##########
+
 driver.get('https://www.ebsi.co.kr/index.jsp')
 accept = 0
 while True :
     try:
-        if(driver.current_url.find('https://www.ebsi.co.kr') == -1 and driver.current_url.find('http://www.ebsi.co.kr')) :
-            print("WARNING : EBSi 홈페이지에서 벗어났습니다. EBSi 홈페이지로 리다이렉트됩니다.")
+        if(search()) :
+            log = driver.current_url
+            print(str(time()) + " WARNING : EBSi 홈페이지에서 벗어났습니다. EBSi 홈페이지로 리다이렉트됩니다.")
+            print("해당 탭의 URL : " + log)
             driver.get('https://www.ebsi.co.kr/index.jsp')
         window_before = driver.window_handles[accept]
         window_after = driver.window_handles[accept+1]
         driver.switch_to.window(window_after)
-        if(driver.current_url.find('https://www.ebsi.co.kr') == -1 and driver.current_url.find('http://www.ebsi.co.kr')) :
+        driver.implicitly_wait(2)
+        if(search()) :
             log = driver.current_url
             driver.close()
             driver.switch_to.window(window_before)
-            print("WARNING : 새로운 탭(EBSi 관련 제외)을(를) 생성하였습니다. 해당 탭을 닫습니다.")
+            print(str(time()) + " WARNING : EBSi홈페이지에서 벗어났습니다. EBSi 홈페이지로 리다이렉트됩니다.")
             print("해당 탭의 URL : " + log)
         else :
-            print("INFO : 허용 탭이 열렸습니다. 현재 활성화 탭 : " + str(accept+1))
+            print(str(time()) + " INFO : 허용 탭이 열렸습니다. 현재 활성화 탭 : " + str(accept+1))
             accept += 1
     except IndexError :
         continue
     except NoSuchWindowException :
-        print("INFO : 활성 탭이 닫혔습니다. 현재 활성화 탭 : " + str(accept - 1))
+        print(str(time()) + " INFO : 활성 탭이 닫혔습니다. 현재 활성화 탭 : " + str(accept - 1))
         accept -= 1
         if(accept == -1) :
-            print("WARNING : 모든 탭이 닫혔습니다. 프로그램이 종료됩니다.")
-            time.sleep(1)
+            print(str(time()) + " WARNING : 모든 탭이 닫혔습니다. 프로그램이 종료됩니다.")
+            os.system("pause")
             quit()
         window_before = driver.window_handles[accept]
         driver.switch_to.window(window_before)
         continue
+    except UnexpectedAlertPresentException as e :
+        print(str(time()) + " WARINIG : 자바스크립트 알림입니다.")
+        notification.notify(title='Alert in browser',message=str(e))
+    except Exception as e:
+        print(print(str(time()) + " WARNING : 알 수 없는 오류입니다."))
+        print(e)
 
 

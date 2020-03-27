@@ -3,13 +3,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>2e7d9a4f-f8d8-43bb-bd69-e51a1fa2f8ae</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
-    <StartupFile>PythonApplication2.py</StartupFile>
+    <ProjectHome>
+    </ProjectHome>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>PythonApplication2</Name>
+    <Name>Auto-Study-Timer</Name>
     <RootNamespace>PythonApplication2</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -21,7 +22,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="PythonApplication2.py" />
+    <Compile Include="main.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Drivers\Chrome\chromedriver.exe" />
@@ -29,6 +30,7 @@
     <Content Include="Drivers\Firefox\geckodriver%2832%29.exe" />
     <Content Include="Drivers\IE\IEDriverServer%2832%29.exe" />
     <Content Include="Drivers\IE\IEDriverServer%2864%29.exe" />
+    <Content Include="allow.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Drivers\" />
