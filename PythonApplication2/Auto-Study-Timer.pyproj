@@ -31,6 +31,8 @@
     <Content Include="Drivers\IE\IEDriverServer%2832%29.exe" />
     <Content Include="Drivers\IE\IEDriverServer%2864%29.exe" />
     <Content Include="allow.txt" />
+    <Content Include="player.txt" />
+    <Content Include="data.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Drivers\" />

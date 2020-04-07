@@ -11,8 +11,7 @@ import platform
 import shutil
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import NoSuchElementException, NoSuchFrameException, NoSuchWindowException, UnexpectedAlertPresentException, WebDriverException
-from time import strftime, localtime, time
-import time
+from time import strftime, localtime, time, sleep
 import os
 from plyer import notification
 from threading import Thread
@@ -78,20 +77,34 @@ elif(platform.architecture()[0] == '64bit') :
 ########## Init & functions ##########
 accept = 0
 flag = 0
+time1 = 0
+t = open('data.txt', 'r+')
+time_all = int(t.readline())
 
-with open('allow.txt') as f:
-    allowlist = f.read().splitlines()
+with open('allow.txt') as a:
+    allowlist = a.read().splitlines()
+
+with open('player.txt') as p:
+    playerlist = p.read().splitlines()
+
+a.close()
+p.close()
+
 
 def search():
+    global allowlist, playerlist
     #for x in allowlist :
         #if(x in driver.current_url) :
             #return False
     #return True
     try :
+        for y in playerlist :
+            if y in driver.current_url :
+                return 1
         for x in allowlist :
             if x in driver.current_url :
-                return False
-        return True
+                return 0
+        return 2
     except Exception:
         driver.close()
 
@@ -104,7 +117,12 @@ def refresh() :
     global accept
     for x in range(0,accept+1,1) :
         driver.switch_to.window(driver.window_handles[x])
-        if(search()) :
+        if(search() == 1) :
+            print(str(time()) + "INFO : 플레이어가 감지되었습니다. 현재 활성화 탭 : " + str(accept))
+            print(str(time()) + "INFO : 활성화 탭이 고정됩니다.")
+            study(accept)
+
+        if(search() == 2) :
             log = driver.current_url
             driver.close()
             driver.switch_to.window(driver.window_handles[x-1])
@@ -114,13 +132,32 @@ def refresh() :
             return
     return 
 
+def study(num) :
+    global time1, time_all
+    while True :
+        print(str(time) + "INFO : 지금부터 측정이 시작됩니다.")
+        os.system("cls")
+        while search() == 1 :
+            window = driver.window_handles[num]
+            driver.switch_to.window(window)
+            os.system("cls")
+            print("공부중...")
+            print("\n현재 시간 : " + strftime("%X"))
+            print("\n현재 공부 시간 : " + str(time1) + "초")
+            print("\n오늘 공부 시간 : " + str(time_all) + "초")
+            time1 = time1 + 1
+            time_all = time_all + 1
+            sleep(1)
 
 ########## Operate ##########
-
 driver.get('https://www.ebsi.co.kr/index.jsp')
 while True :
     try:
-        if(search()) :
+        if(search() == 1) :
+            print(str(time()) + "INFO : 플레이어가 감지되었습니다. 현재 활성화 탭 : " + str(accept))
+            print(str(time()) + "INFO : 활성화 탭이 고정됩니다.")
+            study(accept)
+        if(search() == 2) :
             log = driver.current_url
             print(str(time()) + " WARNING : 허용 홈페이지에서 벗어났습니다. 허용 홈페이지의 첫번쨰 페이지(" + allowlist[0] +  ")로 리다이렉트됩니다.")
             print("해당 탭의 URL : " + log)
@@ -133,14 +170,19 @@ while True :
         window_before = driver.window_handles[accept]
         window_after = driver.window_handles[accept+1]
         driver.switch_to.window(window_after)
-        if(search()) :
+        if(search() == 1) :
+            print(str(time()) + "INFO : 플레이어가 감지되었습니다. 현재 활성화 탭 : " + str(accept))
+            print(str(time()) + "INFO : 활성화 탭이 고정됩니다.")
+            study(accept)
+
+        if(search() == 2) :
             log = driver.current_url
             driver.close()
             driver.switch_to.window(window_before)
             print(str(time()) + " WARNING : 허용 탭에 없는 탭이 열렸습니다. 탭을 닫습니다.")
             print("해당 탭의 URL : " + log)
         else :
-            print(str(time()) + " INFO : 허용 탭이 열렸습니다. 현재 활성화 탭 : " + str(accept+1))
+            print(str(time()) + " INFO : 허용 탭이 열렸습니다. 현재 활성화 탭 : " + str(accept + 1))
             accept += 1
 
     except IndexError :
@@ -151,6 +193,8 @@ while True :
         if(accept == -1) :
             print(str(time()) + " WARNING : 모든 탭이 닫혔습니다. 프로그램이 종료됩니다.")
             os.system("pause")
+            t.write(str(time_all))
+            t.close()
             quit()
         #print(str(time()) + " WARNING : 모든 팝업창은 금지입니다.")
         window_before = driver.window_handles[accept]
@@ -160,7 +204,7 @@ while True :
         print(str(time()) + " INFO : 자바스크립트 알림입니다.")
         notification.notify(title='Alert in browser',message=str(e))
     except Exception as e:
-        print(print(str(time()) + " WARNING : 알 수 없는 오류입니다."))
+        print(str(time()) + " WARNING : 알 수 없는 오류입니다.")
         print(e)
 
 
