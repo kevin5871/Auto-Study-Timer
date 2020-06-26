@@ -78,8 +78,15 @@ elif(platform.architecture()[0] == '64bit') :
 accept = 0
 flag = 0
 time1 = 0
+im = 0
 t = open('data.txt', 'r+')
-time_all = int(t.readline())
+t1 = t.readlines()
+t.close()
+t = open('data.txt', 'w+')
+time_all = int(t1[0])
+im = t1[1]
+if not im == strftime("%x") :
+    time_all = 0
 
 with open('allow.txt') as a:
     allowlist = a.read().splitlines()
@@ -193,7 +200,7 @@ while True :
         if(accept == -1) :
             print(str(time()) + " WARNING : 모든 탭이 닫혔습니다. 프로그램이 종료됩니다.")
             os.system("pause")
-            t.write(str(time_all))
+            t.write(str(time_all) + '\n' + strftime("%x"))
             t.close()
             quit()
         #print(str(time()) + " WARNING : 모든 팝업창은 금지입니다.")
